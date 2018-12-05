@@ -1,0 +1,136 @@
+{% load static %}
+
+<header>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+  <!-- jQuery CDN -->
+  <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+
+  <!-- JS file -->
+  <script src="{% static 'easycomplete/jquery.easy-autocomplete.min.js' %}"></script> 
+
+  <!-- CSS file -->
+  <link rel="stylesheet" href="{% static 'easycomplete/easy-autocomplete.min.css' %}"> 
+  <style>
+    .row { margin-bottom: 40px; }
+    .table-condensed{font-size: 14px;}
+  </style>
+</header>
+
+<body>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/api">Invitae Genomic Variant Challenge</a>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="input-group">
+          <input id="gene-search" placeholder="Search Variants...">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="table-responsive">
+      <div id="table">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function CreateTableFromJSON(data) {
+      var col = [];
+      variants = data.variant_set;
+      for (var i = 0; i < variants.length; i++) {
+        for (var key in variants[i]) {
+          if (col.indexOf(key) === -1) {
+              col.push(key);
+          }
+        }
+      }
+
+      // CREATE DYNAMIC TABLE.
+      var table = document.createElement("table");
+      table.className = "table table-hover table-condensed table-sm table-bordered";
+
+      // CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
+      var tr = table.insertRow(-1);                    // TABLE ROW.
+      var th = document.createElement("th");           // TABLE HEADER.
+      tr.appendChild(th);                              // TABLE HEADER.
+      th.innerHTML = "GENE";
+      for (var i = 0; i < col.length; i++) {
+        if (col[i] === 'url' || col[i] === 'other_mappings') { continue; }
+        var th = document.createElement("th");
+        if (col[i] === 'source') {
+          th.innerHTML = "MORE_INFO";
+        } else{     
+          th.innerHTML = col[i].toUpperCase();
+        }
+        tr.appendChild(th);
+      }
+
+      // ADD JSON DATA TO THE TABLE AS ROWS.
+      for (var i = 0; i < variants.length; i++) {
+        tr = table.insertRow(-1);
+        var tabCell = tr.insertCell(-1);
+        tabCell.innerHTML = data.name;
+        for (var j = 0; j < col.length; j++) {
+          if (col[j] === 'url' || col[j] === 'other_mappings') { continue; }
+
+          var tabCell = tr.insertCell(-1);
+          if (col[j] === 'source') {
+            celldata = "<a href=" + variants[i]['url'] + ">" + variants[i]['source'] + "</a>";
+          }
+          else if (col[j] == 'nucleotide_change') {
+            if (variants[i]['nucleotide_change'] && variants[i]['other_mappings']) {
+              tmp = variants[i]['other_mappings'].split(',');
+              item = "<ul> <li>" + variants[i]['nucleotide_change'] + "</li> ";
+              for (var k = 0; k < tmp.length; k++) {
+                child = "<li>" + tmp[k] + "</li> ";
+                item += child;
+              }
+              item += "</ul>"
+              celldata = item;
+            } else {
+              celldata = variants[i][col[j]];
+            }
+          } 
+          else {
+            celldata = variants[i][col[j]];
+          }
+          tabCell.innerHTML = celldata;
+        }
+      }
+
+      // FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
+      var divContainer = document.getElementById("table");
+      divContainer.innerHTML = "";
+      divContainer.appendChild(table);
+    }
+
+    var options = {
+      url: function(phrase) {
+        return "genesearch?term=" + phrase.toUpperCase();
+      },
+      list: {
+        onClickEvent: function() {
+          var value = $("#gene-search").getSelectedItemData().id;
+          $.get( "genes/" + value, function(data) {
+            CreateTableFromJSON(data);
+          });
+        }
+      },
+      getValue: "name",
+    };
+
+    $("#gene-search").easyAutocomplete(options);
+  </script>
+</body>
