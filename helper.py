@@ -12,8 +12,8 @@ def add_data(path):
         reader = csv.DictReader(tsvfile, dialect='excel-tab')
         count = 1
         for row in reader:
-            print("Record ", count)
-            count += 1
+            if count == 10000:
+                break
             gene, _ = Gene.objects.get_or_create(name=row['Gene'])
             variant, created = Variant.objects.get_or_create(
                     gene=gene,
