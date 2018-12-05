@@ -25,7 +25,7 @@
   <nav class="navbar navbar-default">
     <div class="container-fluid">
       <div class="navbar-header">
-        <a class="navbar-brand" href="/api">Invitae Genomic Variant Challenge</a>
+        <a class="navbar-brand" href="/">Invitae Genomic Variant Challenge</a>
       </div>
     </div>
   </nav>
@@ -118,12 +118,12 @@
 
     var options = {
       url: function(phrase) {
-        return "genesearch?term=" + phrase.toUpperCase();
+        return "api/v1/genesearch?term=" + phrase.toUpperCase();
       },
       list: {
         onClickEvent: function() {
           var value = $("#gene-search").getSelectedItemData().id;
-          $.get( "genes/" + value, function(data) {
+          $.get( "api/v1/genes/" + value, function(data) {
             CreateTableFromJSON(data);
           });
         }
