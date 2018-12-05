@@ -116,16 +116,23 @@
       divContainer.appendChild(table);
     }
 
+    function makeTable() {
+      var value = $("#gene-search").getSelectedItemData().id;
+      $.get( "api/v1/genes/" + value, function(data) {
+        CreateTableFromJSON(data);
+      });
+    }
+
     var options = {
       url: function(phrase) {
         return "api/v1/genesearch?term=" + phrase.toUpperCase();
       },
       list: {
         onClickEvent: function() {
-          var value = $("#gene-search").getSelectedItemData().id;
-          $.get( "api/v1/genes/" + value, function(data) {
-            CreateTableFromJSON(data);
-          });
+          makeTable();
+        },
+        onKeyEnterEvent: function() {
+          makeTable();
         }
       },
       getValue: "name",
